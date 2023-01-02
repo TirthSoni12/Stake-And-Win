@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" class="html-style">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>End Game</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css"
+          integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <link rel="stylesheet" href="../css/style.css">
+
+
+</head>
+
+<body class="background " id="end-game-body">
+
+<!--navigation bar-->
+<nav class="navbar navbar-inverse navbar-style" id="end-game-nav">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="index.html">
+                <img alt="Game Logo" src="../static/images/gameLogo.jpg" class="logo">
+            </a>
+        </div>
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="how_to_play.html">How to play?</a></li>
+                <li><a href="about_game.html">About</a></li>
+                <li class="active"><a href="end_game.html">See Game Status</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right" id="only-owner" style="display: none">
+                <li><a href="transfer_ownership.html">Transfer Ownership</a></li>
+                <li><a href="set_game_fee.html">Update Entry Fee</a></li>
+                <li>
+                    <button id="end-game-btn" class="btn button-style button-common" onclick="endGame()">
+                        <span class="button-span">End Game</span></button>
+                </li>
+            </ul>
+        </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+</nav>
+
+<h2 id="game-open-message" class="title center">The game will end any time...</h2>
+<h2 id="game-end-message" style="display: none" class="title center">Game Ended. Calculating Winners...</h2>
+
+<div class="custom-row-end-game">
+    <div class="custom-col-end-game custom-col-left">
+        <div class="border-bottom custom-flex">
+            <div class="text-col">
+                <h3>Winning Amount</h3>
+                <div id="winning-amount">
+                    <!-- winning amount details -->
+                </div>
+            </div>
+            <div class="image-col">
+                <img src="../static/images/winningAmount.png" class="image-icon" alt="Winning amount icon">
+            </div>
+        </div>
+
+    </div>
+
+    <div class="custom-col-end-game custom-col-center">
+        <div class="border-bottom custom-flex">
+            <div class="text-col">
+                <h3>Game Status</h3>
+                <div id="game-details">
+                    <!-- game details -->
+                </div>
+            </div>
+            <div class="image-col">
+                <img src="../static/images/gameDetails.png" class="image-icon" alt="Game Details icon">
+            </div>
+        </div>
+    </div>
+
+    <div class="custom-col-end-game custom-col-right">
+        <div class="border-bottom custom-flex">
+            <div class="text-col">
+                <h3>Contract Details</h3>
+                <div id="contract-details">
+                    <!-- contract details -->
+                </div>
+            </div>
+            <div class="image-col">
+                <img src="../static/images/contractDetails.png" class="image-icon" alt="Contract Details icon">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="custom-row-end-game">
+    <div class="custom-col-end-game custom-col-bottom">
+        <div class="border-bottom">
+            <h3 class="title center">Players in the current round</h3>
+            <br>
+            <div class="details" id="no-players" style="display: none">
+                <h3 class="center" style="padding-top: 67px">Nobody has joined the game yet</h3>
+            </div>
+            <div class="details player-details" id="player-details" style="display: none">
+                <table style="width: 100%" class="end-game-details" id="player-details-table">
+                    <thead>
+                    <tr class="table-header">
+                        <th style="width: 75%">Player's Address</th>
+                        <th style="width: 25%">Selected Number</th>
+                    </tr>
+                    </thead>
+                    <tbody id="table-body">
+                    <!--players' details-->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+    <div class="custom-col-end-game custom-col-bottom" id="winners">
+        <div class="border-bottom">
+            <h3 class="title center">Previous Game's Results</h3>
+            <br>
+            <div class="details">
+                <h4>Winning Number: <span id="div-winning-number"></span></h4>
+            </div>
+            <div class="details" id="winner-details">
+                <h4>Winner/s</h4>
+                <div id="div-winner-list" style="width: 100%" class="winner-details">
+                    <!-- winners' list -->
+                </div>
+            </div>
+            <div class="details" id="contract-link">
+                <h4><a href='https://goerli.etherscan.io/address/0x512cB88607C80cC747633e4bdcd2d376b943D70C'
+                       target='_blank' style="color: #8f5dc3">
+                    <i>Click here</i></a> for more details.
+                </h4>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.8/dist/sweetalert2.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.nicescroll/3.7.6/jquery.nicescroll.min.js"
+        integrity="sha512-zMfrMAZYAlNClPKjN+JMuslK/B6sPM09BGvrWlW+cymmPmsUT1xJF3P4kxI3lOh9zypakSgWaTpY6vDJY/3Dig=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="../js/main.js"></script>
+<script src="../js/end_game.js"></script>
+
+</body>
+</html>

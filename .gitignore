@@ -1,0 +1,3 @@
+#do not add .idea folder to git
+.idea
+__pycache__
