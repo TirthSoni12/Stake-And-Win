@@ -2,7 +2,7 @@ $(document).ready(function () {
     setTimeout(async function () {
         if (gameState === "1") {
             Swal.fire({
-                title: 'Game state Closed',
+                title: 'Game State Closed',
                 html: 'Sorry!<br>This round has been closed!<br>Try again after sometime',
                 icon: 'info',
                 confirmButtonText: 'See Game Status',

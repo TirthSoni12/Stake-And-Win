@@ -1,4 +1,3 @@
-let playerAddress = null
 let gameEntryFee = null
 
 $(document).ready(function () {
@@ -17,8 +16,11 @@ $(document).ready(function () {
 )
 
 async function select_number(selected_number) {
-    await verifyPlayer()
     document.getElementById('number-buttons').style.pointerEvents = 'none'
+
+    // verify if the player has already joined the round
+    await verifyPlayer()
+
     Swal.fire({
         title: 'Confirm your selection',
         text: 'Are you sure you want to stake on ' + selected_number + ' ?',
@@ -34,9 +36,9 @@ async function select_number(selected_number) {
     }).then(async (result) => {
         if (result.isConfirmed) {
             //send add player transaction
-            playerAddress = account[0]
+            const playerAddress = account[0]
 
-            await contract.methods.addPlayer(playerAddress, selected_number).send({
+            await contract.methods.addPlayer(selected_number).send({
                 from: playerAddress,
                 value: gameEntryFee
             })
