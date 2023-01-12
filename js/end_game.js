@@ -36,6 +36,8 @@ async function getGameDetails() {
     gameState = await contract.methods.game_state().call()
 
     if (gameState === "0") {
+        document.getElementById('game-open-message').style.display = "block"
+        document.getElementById('game-end-message').style.display = "none"
         $('#game-details').empty().append('<p><b>Game State: </b><br>OPEN</p>' +
             '<p id="total-players"><b>Total Players: </b><br>' + (counter - 1) + '</p>')
     } else {
@@ -334,19 +336,12 @@ $(document).ready(function () {
 
 
 window.setInterval(async () => {
-    const currentOwner = await contract.methods.owner().call()
-
-    if (currentOwner !== owner) {
-        owner = currentOwner
-        await getContractDetails()
-    }
 
     const currentCounter = await contract.methods.counter().call()
-
     if (counter < currentCounter) {
         counter = currentCounter
-        await getWinningAmount()
         await getGameDetails()
+        await getWinningAmount()
         await getPlayerDetails()
     }
 
@@ -359,10 +354,15 @@ window.setInterval(async () => {
     }
 
     const currentGameState = await contract.methods.game_state().call()
-
     if (currentGameState !== gameState) {
         gameState = currentGameState
         await getGameDetails()
+    }
+
+    const currentOwner = await contract.methods.owner().call()
+    if (currentOwner !== owner) {
+        owner = currentOwner
+        await getContractDetails()
     }
 
 }, 10000)
