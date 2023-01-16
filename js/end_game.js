@@ -15,16 +15,17 @@ $(document).ready(function () {
             if (account[0] === owner) {
                 document.getElementById('only-owner').style.display = 'block'
             }
-            await getWinningAmount()
             await getGameDetails()
+            await getWinningAmount()
             await getContractDetails()
-            await getWinnerDetails()
             await getPlayerDetails()
+            await getWinnerDetails()
         }, 2000)
     }
 )
 
 async function getWinningAmount() {
+    console.log("winning amount")
     let contractBalance = await web3.eth.getBalance(contractAddress)
     let winning_amount = ((contractBalance * 80) / 100)
 
@@ -33,18 +34,18 @@ async function getWinningAmount() {
 }
 
 async function getGameDetails() {
-    gameState = await contract.methods.game_state().call()
-
-    if (gameState === "0") {
-        document.getElementById('game-open-message').style.display = "block"
-        document.getElementById('game-end-message').style.display = "none"
-        $('#game-details').empty().append('<p><b>Game State: </b><br>OPEN</p>' +
-            '<p id="total-players"><b>Total Players: </b><br>' + (counter - 1) + '</p>')
-    } else {
-        document.getElementById('game-open-message').style.display = "none"
-        document.getElementById('game-end-message').style.display = "block"
-        $('#game-details').empty().append('<p><b>Game State: </b>CLOSED</p>')
-    }
+    console.log("game details")
+    $('#total-players').empty().append('<b>Total Players: </b><br>' + (counter - 1) + '</p>')
+    // if (gameState === "0") {
+    //     document.getElementById('game-open-message').style.display = "block"
+    //     document.getElementById('game-end-message').style.display = "none"
+    //     $('#game-details').empty().append('<p><b>Game State: </b><br>OPEN</p>' +
+    //         '<p id="total-players"><b>Total Players: </b><br>' + (counter - 1) + '</p>')
+    // } else {
+    //     document.getElementById('game-open-message').style.display = "none"
+    //     document.getElementById('game-end-message').style.display = "block"
+    //     $('#game-details').empty().append('<p><b>Game State: </b>CLOSED</p>')
+    // }
 }
 
 async function getContractDetails() {
@@ -53,6 +54,7 @@ async function getContractDetails() {
 }
 
 async function getPlayerDetails() {
+    console.log("player details")
     if (counter === "1") {
         document.getElementById('no-players').style.display = 'block'
         document.getElementById('player-details').style.display = 'none'
@@ -74,10 +76,17 @@ async function getPlayerDetails() {
 }
 
 async function getWinnerDetails() {
+    console.log("winner details")
     winningNumber = await contract.methods.winningNumber().call()
     $('#div-winning-number').empty().append(winningNumber)
 
-    winners = await contract.methods.getWinnersList().call()
+    let total_winners = await contract.methods.winnerCounter().call()
+
+    for (i = 1; i < total_winners; i++) {
+        winners[i] = await contract.methods.winners(i).call()
+    }
+
+    // winners = await contract.methods.getWinnersList().call()
     $('#div-winner-list').empty()
 
     if (winners.length > 0) {
@@ -115,22 +124,6 @@ async function endGame() {
             title: 'Cannot End Game',
             text: 'Atleast 2 players are required before ending the game',
             icon: 'warning',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: false,
-            iconColor: 'beige',
-            customClass: 'swal-style'
-        }).then(async () => {
-            window.location.reload()
-        })
-    }
-
-    // cannot end game if game state is already closed
-    else if (await contract.methods.game_state().call() === "1") {
-        Swal.fire({
-            title: 'Calculating winner',
-            html: 'Game state is already closed.',
-            icon: 'info',
             allowOutsideClick: false,
             allowEscapeKey: false,
             allowEnterKey: false,
@@ -423,6 +416,25 @@ $(document).ready(function () {
 window.setInterval(async () => {
 
     const currentCounter = await contract.methods.counter().call()
+
+    console.log(counter, currentCounter)
+
+    if (counter !== currentCounter) {
+        console.log("yes")
+
+        if (counter > currentCounter) {
+            console.log("ended")
+            await getWinnerDetails()
+
+        }
+        counter = currentCounter
+
+        await getGameDetails()
+        await getWinningAmount()
+        await getPlayerDetails()
+    }
+
+
     if (counter < currentCounter) {
         counter = currentCounter
         await getGameDetails()
@@ -436,12 +448,6 @@ window.setInterval(async () => {
         await getWinnerDetails()
         await getWinningAmount()
         await getPlayerDetails()
-    }
-
-    const currentGameState = await contract.methods.game_state().call()
-    if (currentGameState !== gameState) {
-        gameState = currentGameState
-        await getGameDetails()
     }
 
     const currentOwner = await contract.methods.owner().call()
