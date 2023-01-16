@@ -1,8 +1,7 @@
 const web3 = new Web3(Web3.givenProvider)
-let contractAddress = "0xa5f91C5795683132D6d9555a5C4A7587e7195242"
+let contractAddress = "0x2fb201C382b4b8D18D45Fb18562DFE02DC174a3f"
 let contract = null
 let account = null
-let gameState = null
 let counter = null
 let owner = null
 
@@ -19,7 +18,6 @@ $(document).ready(async function () {
             account = await web3.eth.getAccounts()
             owner = await contract.methods.owner().call()
             counter = await contract.methods.counter().call()
-            gameState = await contract.methods.game_state().call()
         })
     } else {
         Swal.fire({

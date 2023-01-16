@@ -109,7 +109,7 @@ async function endGame() {
         })
     }
 
-    //cannot end game if only one player is there
+    //cannot end game if less than 2 players are there
     else if (counter <= 2) {
         Swal.fire({
             title: 'Cannot End Game',
@@ -126,10 +126,10 @@ async function endGame() {
     }
 
     // cannot end game if game state is already closed
-    else if (gameState === "1") {
+    else if (await contract.methods.game_state().call() === "1") {
         Swal.fire({
             title: 'Calculating winner',
-            html: 'Game state is already closed.<br>Wait till the winner is decided',
+            html: 'Game state is already closed.',
             icon: 'info',
             allowOutsideClick: false,
             allowEscapeKey: false,
@@ -139,188 +139,273 @@ async function endGame() {
         }).then(async () => {
             window.location.reload()
         })
-    } else {
-        await closeGameState()
+    }
+
+    // call the endgame function from the smart contract and end the game
+    else {
+        await contract.methods.endGame().send({from: owner})
+            .on('transactionHash', function (hash) {
+                document.getElementById('end-game-body').style.pointerEvents = 'auto'
+                Swal.fire({
+                    title: 'Calculating the winners',
+                    html: `Your transaction is pending...<br>Please wait till we calculate the winners.<br>Do not close this page.` +
+                        `<br>Click <a style="color: #8f5dc3; font-style: italic" href="https://goerli.etherscan.io/tx/${hash}" target="_blank">here</a> to view your transaction`,
+                    icon: 'info',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    allowEnterKey: false,
+                    iconColor: 'beige',
+                    customClass: 'swal-style'
+                })
+            }).on('receipt', function (receipt) {
+                document.getElementById('end-game-body').style.pointerEvents = 'auto'
+                if (receipt.status === true) {
+                    Swal.fire({
+                        title: 'Game Ended',
+                        html: `Congratulations!!! <br>Your transaction was successful.<br>Game Ended.` +
+                            `<br>Click <a style="color: #8f5dc3; font-style: italic" href="https://goerli.etherscan.io/tx/${receipt.transactionHash}" target="_blank">here</a> to view your transaction`,
+                        imageUrl: "../static/images/success.png",
+                        imageHeight: '70px',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        allowEnterKey: false,
+                        iconColor: 'beige',
+                        customClass: 'swal-style'
+                    }).then(() => {
+                        window.location.reload()
+                    })
+                } else {
+                    Swal.fire({
+                        title: 'Transaction Error',
+                        html: `Oops! There was some error in completing your transaction.<br>Please try again` +
+                            `<br>Click <a style="color: #8f5dc3; font-style: italic" href="https://goerli.etherscan.io/tx/${receipt.transactionHash}" target="_blank">here</a> to view your transaction`,
+                        icon: 'error',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        allowEnterKey: false,
+                        iconColor: 'beige',
+                        customClass: 'swal-style'
+                    }).then(() => {
+                        window.location.reload()
+                    })
+                }
+            }).on('error', function (error) {
+                console.log(error)
+                if (error.code === 4001) {
+                    Swal.fire({
+                        title: 'Transaction Rejected',
+                        text: 'You need to confirm the transaction to end the game.',
+                        icon: 'error',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        allowEnterKey: false,
+                        iconColor: 'beige',
+                        customClass: 'swal-style'
+                    }).then(() => {
+                        window.location.reload()
+                    })
+                } else {
+                    Swal.fire({
+                        title: 'Transaction Error',
+                        html: 'Oops! There was some error in completing your transaction.<br>Please try again',
+                        icon: 'error',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        allowEnterKey: false,
+                        iconColor: 'beige',
+                        customClass: 'swal-style'
+                    }).then(() => {
+                        window.location.reload()
+                    })
+                }
+            });
     }
 }
 
-async function closeGameState() {
 
-    await contract.methods.closeGameState().send({'from': owner})
-        .on('transactionHash', function (hash) {
-            Swal.fire({
-                title: 'Closing the game state',
-                html: `Your transaction is pending...<br>Please wait till we close the game state.<br>Do not close this page.` +
-                    `<br>Click <a style="color: #8f5dc3; font-style: italic" href="https://goerli.etherscan.io/tx/${hash}" target="_blank">here</a> to view your transaction`,
-                icon: 'info',
-                showConfirmButton: false,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                allowEnterKey: false,
-                iconColor: 'beige',
-                customClass: 'swal-style'
-            })
-        }).on('receipt', function (receipt) {
-            if (receipt.status === true) {
-                Swal.fire({
-                    title: 'Game State Closed',
-                    html: `Congratulations!!! <br>Your transaction was successful.<br>Game Closed.` +
-                        `<br>Click <a style="color: #8f5dc3; font-style: italic" href="https://goerli.etherscan.io/tx/${receipt.transactionHash}" target="_blank">here</a> to view your transaction`,
-                    imageUrl: "../static/images/success.png",
-                    imageHeight: '70px',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    allowEnterKey: false,
-                    customClass: 'swal-style'
-                }).then(() => {
-                    document.getElementById('end-game-body').style.pointerEvents = 'none'
-                    selectWinner()
-                })
-            } else {
-                Swal.fire({
-                    title: 'Transaction Error',
-                    html: `Oops! There was some error in completing your transaction.<br>Please try again.` +
-                        `<br>Click <a style="color: #8f5dc3; font-style: italic" href="https://goerli.etherscan.io/tx/${receipt.transactionHash}" target="_blank">here</a> to view your transaction`,
-                    icon: 'error',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    allowEnterKey: false,
-                    iconColor: 'beige',
-                    customClass: 'swal-style'
-                }).then(() => {
-                    window.location.reload()
-                })
-            }
-        }).on('error', function (error) {
-            console.log(error)
-            if (error.code === 4001) {
-                Swal.fire({
-                    title: 'Transaction Rejected',
-                    text: 'You need to confirm the transaction to close the game state.',
-                    icon: 'error',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    allowEnterKey: false,
-                    iconColor: 'beige',
-                    customClass: 'swal-style'
-                }).then(() => {
-                    window.location.reload()
-                })
-            } else {
-                Swal.fire({
-                    title: 'Transaction Error',
-                    text: 'Oops! There was some error in completing your transaction. Please try again',
-                    icon: 'error',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    allowEnterKey: false,
-                    iconColor: 'beige',
-                    customClass: 'swal-style'
-                }).then(() => {
-                    window.location.reload()
-                })
-            }
-        });
-}
-
-async function selectWinner() {
-    let newWinners = []
-    let newWinningNumber
-
-    let randomNumber = Math.floor(Math.random() * 10) + 1;
-    newWinningNumber = randomNumber.toString()
-
-    //selecting winners
-    for (let i = 1; i < counter; i++) {
-        if (selectedNumbers[i] === newWinningNumber) {
-            newWinners.push(players[i])
-        }
-    }
-
-    await callEndGameFromContract(newWinners, randomNumber)
-}
-
-
-async function callEndGameFromContract(newWinners, newWinningNumber) {
-    //call endgame function
-    await contract.methods.endGame(newWinners, newWinningNumber).send({'from': owner})
-        .on('transactionHash', function (hash) {
-            document.getElementById('end-game-body').style.pointerEvents = 'auto'
-            Swal.fire({
-                title: 'Calculating the winners',
-                html: `Your transaction is pending...<br>Please wait till we calculate the winners.<br>Do not close this page.` +
-                    `<br>Click <a style="color: #8f5dc3; font-style: italic" href="https://goerli.etherscan.io/tx/${hash}" target="_blank">here</a> to view your transaction`,
-                icon: 'info',
-                showConfirmButton: false,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                allowEnterKey: false,
-                iconColor: 'beige',
-                customClass: 'swal-style'
-            })
-        }).on('receipt', function (receipt) {
-            document.getElementById('end-game-body').style.pointerEvents = 'auto'
-            if (receipt.status === true) {
-                Swal.fire({
-                    title: 'Game Ended',
-                    html: `Congratulations!!! <br>Your transaction was successful.<br>Game Ended.` +
-                        `<br>Click <a style="color: #8f5dc3; font-style: italic" href="https://goerli.etherscan.io/tx/${receipt.transactionHash}" target="_blank">here</a> to view your transaction`,
-                    imageUrl: "../static/images/success.png",
-                    imageHeight: '70px',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    allowEnterKey: false,
-                    iconColor: 'beige',
-                    customClass: 'swal-style'
-                }).then(() => {
-                    window.location.reload()
-                })
-            } else {
-                Swal.fire({
-                    title: 'Transaction Error',
-                    html: `Oops! There was some error in completing your transaction.<br>Please try again` +
-                        `<br>Click <a style="color: #8f5dc3; font-style: italic" href="https://goerli.etherscan.io/tx/${receipt.transactionHash}" target="_blank">here</a> to view your transaction`,
-                    icon: 'error',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    allowEnterKey: false,
-                    iconColor: 'beige',
-                    customClass: 'swal-style'
-                }).then(() => {
-                    window.location.reload()
-                })
-            }
-        }).on('error', function (error) {
-            console.log(error)
-            if (error.code === 4001) {
-                Swal.fire({
-                    title: 'Transaction Rejected',
-                    text: 'You need to confirm the transaction to end the game.',
-                    icon: 'error',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    allowEnterKey: false,
-                    iconColor: 'beige',
-                    customClass: 'swal-style'
-                }).then(() => {
-                    window.location.reload()
-                })
-            } else {
-                Swal.fire({
-                    title: 'Transaction Error',
-                    html: 'Oops! There was some error in completing your transaction.<br>Please try again',
-                    icon: 'error',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    allowEnterKey: false,
-                    iconColor: 'beige',
-                    customClass: 'swal-style'
-                }).then(() => {
-                    window.location.reload()
-                })
-            }
-        });
-}
+// } else {
+//     await closeGameState()
+// }
+// }
+//
+// async function closeGameState() {
+//
+//     await contract.methods.closeGameState().send({'from': owner})
+//         .on('transactionHash', function (hash) {
+//             Swal.fire({
+//                 title: 'Closing the game state',
+//                 html: `Your transaction is pending...<br>Please wait till we close the game state.<br>Do not close this page.` +
+//                     `<br>Click <a style="color: #8f5dc3; font-style: italic" href="https://goerli.etherscan.io/tx/${hash}" target="_blank">here</a> to view your transaction`,
+//                 icon: 'info',
+//                 showConfirmButton: false,
+//                 allowOutsideClick: false,
+//                 allowEscapeKey: false,
+//                 allowEnterKey: false,
+//                 iconColor: 'beige',
+//                 customClass: 'swal-style'
+//             })
+//         }).on('receipt', function (receipt) {
+//             if (receipt.status === true) {
+//                 Swal.fire({
+//                     title: 'Game State Closed',
+//                     html: `Congratulations!!! <br>Your transaction was successful.<br>Game Closed.` +
+//                         `<br>Click <a style="color: #8f5dc3; font-style: italic" href="https://goerli.etherscan.io/tx/${receipt.transactionHash}" target="_blank">here</a> to view your transaction`,
+//                     imageUrl: "../static/images/success.png",
+//                     imageHeight: '70px',
+//                     allowOutsideClick: false,
+//                     allowEscapeKey: false,
+//                     allowEnterKey: false,
+//                     customClass: 'swal-style'
+//                 }).then(() => {
+//                     document.getElementById('end-game-body').style.pointerEvents = 'none'
+//                     selectWinner()
+//                 })
+//             } else {
+//                 Swal.fire({
+//                     title: 'Transaction Error',
+//                     html: `Oops! There was some error in completing your transaction.<br>Please try again.` +
+//                         `<br>Click <a style="color: #8f5dc3; font-style: italic" href="https://goerli.etherscan.io/tx/${receipt.transactionHash}" target="_blank">here</a> to view your transaction`,
+//                     icon: 'error',
+//                     allowOutsideClick: false,
+//                     allowEscapeKey: false,
+//                     allowEnterKey: false,
+//                     iconColor: 'beige',
+//                     customClass: 'swal-style'
+//                 }).then(() => {
+//                     window.location.reload()
+//                 })
+//             }
+//         }).on('error', function (error) {
+//             console.log(error)
+//             if (error.code === 4001) {
+//                 Swal.fire({
+//                     title: 'Transaction Rejected',
+//                     text: 'You need to confirm the transaction to close the game state.',
+//                     icon: 'error',
+//                     allowOutsideClick: false,
+//                     allowEscapeKey: false,
+//                     allowEnterKey: false,
+//                     iconColor: 'beige',
+//                     customClass: 'swal-style'
+//                 }).then(() => {
+//                     window.location.reload()
+//                 })
+//             } else {
+//                 Swal.fire({
+//                     title: 'Transaction Error',
+//                     text: 'Oops! There was some error in completing your transaction. Please try again',
+//                     icon: 'error',
+//                     allowOutsideClick: false,
+//                     allowEscapeKey: false,
+//                     allowEnterKey: false,
+//                     iconColor: 'beige',
+//                     customClass: 'swal-style'
+//                 }).then(() => {
+//                     window.location.reload()
+//                 })
+//             }
+//         });
+// }
+//
+// async function selectWinner() {
+//     let newWinners = []
+//     let newWinningNumber
+//
+//     let randomNumber = Math.floor(Math.random() * 10) + 1;
+//     newWinningNumber = randomNumber.toString()
+//
+//     //selecting winners
+//     for (let i = 1; i < counter; i++) {
+//         if (selectedNumbers[i] === newWinningNumber) {
+//             newWinners.push(players[i])
+//         }
+//     }
+//
+//     await callEndGameFromContract(newWinners, randomNumber)
+// }
+//
+//
+// async function callEndGameFromContract(newWinners, newWinningNumber) {
+//     //call endgame function
+//     await contract.methods.endGame(newWinners, newWinningNumber).send({'from': owner})
+//         .on('transactionHash', function (hash) {
+//             document.getElementById('end-game-body').style.pointerEvents = 'auto'
+//             Swal.fire({
+//                 title: 'Calculating the winners',
+//                 html: `Your transaction is pending...<br>Please wait till we calculate the winners.<br>Do not close this page.` +
+//                     `<br>Click <a style="color: #8f5dc3; font-style: italic" href="https://goerli.etherscan.io/tx/${hash}" target="_blank">here</a> to view your transaction`,
+//                 icon: 'info',
+//                 showConfirmButton: false,
+//                 allowOutsideClick: false,
+//                 allowEscapeKey: false,
+//                 allowEnterKey: false,
+//                 iconColor: 'beige',
+//                 customClass: 'swal-style'
+//             })
+//         }).on('receipt', function (receipt) {
+//             document.getElementById('end-game-body').style.pointerEvents = 'auto'
+//             if (receipt.status === true) {
+//                 Swal.fire({
+//                     title: 'Game Ended',
+//                     html: `Congratulations!!! <br>Your transaction was successful.<br>Game Ended.` +
+//                         `<br>Click <a style="color: #8f5dc3; font-style: italic" href="https://goerli.etherscan.io/tx/${receipt.transactionHash}" target="_blank">here</a> to view your transaction`,
+//                     imageUrl: "../static/images/success.png",
+//                     imageHeight: '70px',
+//                     allowOutsideClick: false,
+//                     allowEscapeKey: false,
+//                     allowEnterKey: false,
+//                     iconColor: 'beige',
+//                     customClass: 'swal-style'
+//                 }).then(() => {
+//                     window.location.reload()
+//                 })
+//             } else {
+//                 Swal.fire({
+//                     title: 'Transaction Error',
+//                     html: `Oops! There was some error in completing your transaction.<br>Please try again` +
+//                         `<br>Click <a style="color: #8f5dc3; font-style: italic" href="https://goerli.etherscan.io/tx/${receipt.transactionHash}" target="_blank">here</a> to view your transaction`,
+//                     icon: 'error',
+//                     allowOutsideClick: false,
+//                     allowEscapeKey: false,
+//                     allowEnterKey: false,
+//                     iconColor: 'beige',
+//                     customClass: 'swal-style'
+//                 }).then(() => {
+//                     window.location.reload()
+//                 })
+//             }
+//         }).on('error', function (error) {
+//             console.log(error)
+//             if (error.code === 4001) {
+//                 Swal.fire({
+//                     title: 'Transaction Rejected',
+//                     text: 'You need to confirm the transaction to end the game.',
+//                     icon: 'error',
+//                     allowOutsideClick: false,
+//                     allowEscapeKey: false,
+//                     allowEnterKey: false,
+//                     iconColor: 'beige',
+//                     customClass: 'swal-style'
+//                 }).then(() => {
+//                     window.location.reload()
+//                 })
+//             } else {
+//                 Swal.fire({
+//                     title: 'Transaction Error',
+//                     html: 'Oops! There was some error in completing your transaction.<br>Please try again',
+//                     icon: 'error',
+//                     allowOutsideClick: false,
+//                     allowEscapeKey: false,
+//                     allowEnterKey: false,
+//                     iconColor: 'beige',
+//                     customClass: 'swal-style'
+//                 }).then(() => {
+//                     window.location.reload()
+//                 })
+//             }
+//         });
+// }
 
 //custom scroll bar
 $(document).ready(function () {
@@ -365,4 +450,4 @@ window.setInterval(async () => {
         await getContractDetails()
     }
 
-}, 10000)
+}, 5000)

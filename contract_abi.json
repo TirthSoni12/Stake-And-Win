@@ -11,10 +11,6 @@
     "type": "constructor"
   },
   {
-    "stateMutability": "payable",
-    "type": "fallback"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -55,45 +51,6 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "game_state",
-    "outputs": [
-      {
-        "internalType": "enum StakeAndWin.GAME_STATE",
-        "name": "",
-        "type": "uint8"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getBalance",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getWinnersList",
-    "outputs": [
-      {
-        "internalType": "address payable[]",
-        "name": "",
-        "type": "address[]"
       }
     ],
     "stateMutability": "view",
@@ -174,6 +131,19 @@
     "name": "transferOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "winnerCounter",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

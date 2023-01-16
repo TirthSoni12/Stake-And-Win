@@ -1,25 +1,9 @@
 $(document).ready(function () {
     setTimeout(async function () {
-        if (gameState === "1") {
-            Swal.fire({
-                title: 'Game State Closed',
-                html: 'Sorry!<br>This round has been closed!<br>Try again after sometime',
-                icon: 'info',
-                confirmButtonText: 'See Game Status',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                allowEnterKey: false,
-                iconColor: 'beige',
-                customClass: 'swal-style'
-            }).then(() => {
-                window.location.replace('../html/end_game.html')
-            })
-        }
-
         //verify if player is already a member of the game
         await verifyPlayer()
 
-    }, 1000)
+    }, 800)
 })
 
 async function verifyPlayer() {
