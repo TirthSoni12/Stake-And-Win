@@ -1,1 +1,1 @@
-# Stake-and-Win
+Stake-and-Win
