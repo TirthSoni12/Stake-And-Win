@@ -1,1 +1,2 @@
 Stake-and-Win
+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
